@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="義大利記帳">
+<meta name="theme-color" content="#FFF8F1">
+<title>義大利記帳本</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap">
+<style>
+/* Same pastel look as the Netherlands trip app, re-tinted toward Italian green/red. */
+:root{
+  --bg:#FFF8F1; --card:#FFFFFF; --ink:#4A3A33; --muted:#9A8579; --line:#F1E3D6;
+  --pink:#FF8FA3; --pink-soft:#FFE4EA; --orange:#FF9F5A; --orange-soft:#FFE9D9; --yellow-soft:#FFF3C4;
+  --mint:#5DB386; --mint-soft:#DFF3E6; --blue:#5B8DEF; --blue-soft:#E1ECFF; --lilac-soft:#EEE6FF;
+  --red:#E0584F; --red-soft:#FFE3E0; --warn:#D9653B;
+  --f-cute:"Huninn","Noto Sans TC","PingFang TC",sans-serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-num:"Nunito","Noto Sans TC",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:640px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-cute);font-weight:400;margin:0}
+button{font-family:inherit;cursor:pointer;color:var(--ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2.5px solid var(--pink);outline-offset:2px}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:10px 0 8px;display:flex;align-items:center;gap:10px}
+.logo{width:42px;height:42px;border-radius:14px;background:var(--mint-soft);display:grid;place-items:center;font-size:24px;flex-shrink:0}
+.brand{flex:1;min-width:0}
+.brand b{font-family:var(--f-cute);font-weight:400;font-size:20px;display:flex;align-items:center;gap:6px;line-height:1.25;flex-wrap:wrap}
+.brand>span{font-size:12.5px;color:var(--muted)}
+.fly{display:inline-flex;align-items:center;gap:5px;background:var(--card);box-shadow:0 2px 0 var(--line);border-radius:999px;padding:1px 9px;font-size:14px}
+.flag{width:22px;height:15px;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.12);display:block}
+.fly i{font-style:normal;display:inline-block;animation:fly 2.4s ease-in-out infinite}
+@keyframes fly{0%,100%{transform:translateX(-2px) rotate(-6deg)}50%{transform:translateX(3px) translateY(-2px) rotate(4deg)}}
+@media (prefers-reduced-motion:reduce){.fly i{animation:none}}
+.gear{border:0;border-radius:999px;background:var(--card);box-shadow:0 2px 0 var(--line);width:38px;height:38px;font-size:18px;flex-shrink:0}
+.store{font-size:12.5px;border-radius:12px;padding:6px 12px;margin:2px 0 10px;background:var(--yellow-soft)}
+.store.cloud{background:var(--mint-soft)}
+.card{background:var(--card);border-radius:20px;box-shadow:0 3px 0 var(--line);padding:14px 16px;margin-bottom:12px}
+.card h3{font-size:17px;margin-bottom:8px}
+.totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.tot{background:var(--card);border-radius:18px;box-shadow:0 3px 0 var(--line);padding:12px 14px;min-width:0}
+.tot b{display:block;font:900 22px var(--f-num);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.tot span{font-size:12px;color:var(--muted)}
+.tot.big{grid-column:1/-1;background:linear-gradient(90deg,var(--mint-soft) 0 33%,#fff 33% 66%,var(--red-soft) 66%)}
+.tot.big b{font-size:28px}
+.budget{height:10px;border-radius:999px;background:var(--bg);overflow:hidden;margin-top:6px}
+.budget i{display:block;height:100%;background:var(--mint);border-radius:999px}
+.budget i.over{background:var(--red)}
+.conv{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:end}
+.conv label,.form label{display:grid;gap:3px;font-size:12.5px;color:var(--muted)}
+input,select,textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:8px 10px;font:500 16px var(--f-body);background:#fff;color:var(--ink)}
+.bars{display:grid;gap:7px}
+.bar{display:grid;grid-template-columns:78px minmax(0,1fr) 78px;gap:8px;align-items:center;font-size:12.5px}
+.bar .tr{height:10px;border-radius:999px;background:var(--bg);overflow:hidden}
+.bar .fl{height:100%;border-radius:999px;background:var(--pink)}
+.bar .v{text-align:right;font:800 12.5px var(--f-num);font-variant-numeric:tabular-nums}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.seg button{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:4px 11px;font-size:13px;font-weight:700}
+.seg button[aria-pressed="true"]{background:var(--mint-soft);border-color:#A9DDBF}
+.split{display:grid;gap:6px}
+.split div{display:flex;justify-content:space-between;gap:8px;font-size:14px;background:var(--bg);border-radius:12px;padding:7px 11px}
+.split b{font:900 14px var(--f-num)}
+.split .pos{color:#2F8A57}.split .neg{color:var(--red)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:0 0 auto;border:0;border-radius:16px;padding:6px 12px;background:var(--card);box-shadow:0 2px 0 var(--line);line-height:1.2;text-align:center}
+.chips button b{display:block;font:900 14px var(--f-num)}
+.chips button small{font-size:11px;color:var(--muted)}
+.chips button[aria-pressed="true"]{background:var(--mint-soft)}
+.dayh{display:flex;justify-content:space-between;align-items:baseline;margin:12px 4px 6px;font-size:13px;color:var(--muted)}
+.dayh b{font-family:var(--f-cute);font-weight:400;font-size:15px;color:var(--ink)}
+.dayh span{font:800 13px var(--f-num)}
+.exp{width:100%;text-align:left;border:0;display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--card);border-radius:16px;box-shadow:0 2px 0 var(--line);padding:9px 12px;margin-bottom:6px}
+.exp .ce{width:38px;height:38px;border-radius:12px;background:var(--bg);display:grid;place-items:center;font-size:19px}
+.exp .nm{overflow-wrap:anywhere}
+.exp .ds{font-size:12px;color:var(--muted)}
+.exp .am{text-align:right;font:900 14.5px var(--f-num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.exp .am small{display:block;font:700 11.5px var(--f-num);color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:30px 10px;font-size:14px}
+.empty b{display:block;font-size:34px;margin-bottom:6px}
+.fab{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:6;border:0;border-radius:999px;background:var(--pink);color:#fff;font-weight:900;font-size:17px;padding:13px 30px;box-shadow:0 4px 0 #E8708A,0 6px 18px rgba(232,112,138,.35)}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(74,58,51,.35);display:flex;align-items:flex-end;justify-content:center}
+.sheet[hidden]{display:none!important}
+.sheet-in{background:var(--card);width:100%;max-width:560px;border-radius:24px 24px 0 0;max-height:92vh;overflow:auto;
+  padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet-in h3{font-size:19px;margin-bottom:10px}
+.form{display:grid;gap:10px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.amt{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:8px}
+.amt input{font:900 24px var(--f-num)}
+.pick{display:flex;gap:6px;flex-wrap:wrap}
+.pick button{border:2px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font-size:13.5px;font-weight:700}
+.pick button[aria-pressed="true"]{background:var(--pink-soft);border-color:#F7B6C3}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap}
+.btn{border:0;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;background:var(--bg)}
+.btn.pri{background:var(--pink);color:#fff}
+.btn.del{background:var(--red-soft);color:var(--red);margin-right:auto}
+.btn.del.armed{background:var(--red);color:#fff}
+.hint{font-size:12.5px;color:var(--muted);line-height:1.6}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:30;background:var(--ink);color:#fff;border-radius:999px;padding:8px 16px;font-size:13.5px;max-width:90vw;text-align:center}
+.toast[hidden]{display:none}
+hr{border:0;border-top:2px dashed var(--line);margin:14px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo" aria-hidden="true">🍕</div>
+    <div class="brand">
+      <b><span id="tname">義大利之旅</span>
+        <span class="fly" aria-label="台灣飛到義大利">
+          <svg class="flag" viewBox="0 0 30 20" role="img" aria-label="台灣"><rect width="30" height="20" fill="#FE0000"/><rect width="15" height="10" fill="#000095"/><circle cx="7.5" cy="5" r="2.6" fill="#fff"/><circle cx="7.5" cy="5" r="1.7" fill="#000095"/><circle cx="7.5" cy="5" r="1.4" fill="#fff"/></svg>
+          <i>✈️</i>
+          <svg class="flag" viewBox="0 0 30 20" role="img" aria-label="義大利"><rect width="10" height="20" fill="#009246"/><rect x="10" width="10" height="20" fill="#fff"/><rect x="20" width="10" height="20" fill="#CE2B37"/></svg>
+        </span></b>
+      <span id="tsub"></span>
+    </div>
+    <button class="gear" id="gear" aria-label="設定">⚙️</button>
+  </header>
+  <div id="store" class="store">📱 載入中…</div>
+  <main id="app"></main>
+</div>
+<button class="fab" id="fab">＋ 記一筆</button>
+<div class="sheet" id="sheet" hidden><div class="sheet-in" role="dialog" aria-modal="true" id="sheetIn"></div></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const CATS={餐飲:'🍝',咖啡甜點:'🍦',交通:'🚆',門票:'🎟️',住宿:'🏨',購物:'🛍️',其他:'✨'};
+const PAYS=['刷卡','現金'];
+const DEF={settings:{name:'義大利之旅',start:'',end:'',people:['弟弟'],cities:['羅馬','威尼斯','佛羅倫斯','其他'],budget:0},rate:36.85,rateDate:'2026/11 參考',list:[]};
+const KEY='it-money-v1';
+// ↓↓↓ 把 Apps Script「網頁應用程式」網址貼在兩個引號中間（https://script.google.com/macros/s/…/exec）
+const SHEET_URL='https://script.google.com/macros/s/AKfycbyfLXFGUVGjOUe4ByB8qID31pPldKQGHo7NV-lJc4jnbCs8Z4DWGjRTvcm4qdIRXtY/exec';
+// ↑↑↑ 貼好後，妳弟打開就會自動同步，不用自己設定
+const QK='it-money-q',UK='it-sheet-url',SK='it-sheet-seeded';
+const ls={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+const clone=o=>JSON.parse(JSON.stringify(o));
+function norm(d){d=d||{};const s=Object.assign({},DEF.settings,d.settings||{});
+  if(!Array.isArray(s.people)||!s.people.length)s.people=['弟弟'];if(!Array.isArray(s.cities)||!s.cities.length)s.cities=clone(DEF.settings.cities);
+  return {settings:s,rate:+d.rate||DEF.rate,rateDate:d.rateDate||'',list:Array.isArray(d.list)?d.list:[]};}
+let S=norm((()=>{try{return JSON.parse(ls.get(KEY)||'null')}catch(e){return null}})()||clone(DEF));
+const U={day:'all',view:'cat',conv:{v:10,dir:'e2t'},armed:false};
+let DB=null,CAN=true,MODE='local',wq=Promise.resolve();
+
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const fmtT=n=>'NT$'+Math.round(n).toLocaleString('en-US');
+const fmtE=n=>'€'+(+n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pad=n=>String(n).padStart(2,'0');
+const todayISO=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
+const WD=['日','一','二','三','四','五','六'];
+const dLabel=iso=>{if(!iso||iso==='pre')return '出發前';const d=new Date(iso+'T00:00:00');return isNaN(d)?iso:pad(d.getMonth()+1)+'/'+pad(d.getDate())+'（'+WD[d.getDay()]+'）';};
+const toE=x=>x.cur==='TWD'?x.amount/S.rate:+x.amount;
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2200);}
+
+// ---------- 儲存：手機 + （claude.ai 雲端 或 Google 試算表）----------
+const IN_CLAUDE=!!(window.claude&&window.claude.use);
+let Q=(()=>{try{return JSON.parse(ls.get(QK)||'[]')||[]}catch(e){return []}})();
+const SH={st:'',busy:false,last:''};
+const sheetUrl=()=>IN_CLAUDE?'':(ls.get(UK)||SHEET_URL||'').trim();
+function persist(){ls.set(KEY,JSON.stringify(S));ls.set(QK,JSON.stringify(Q));}
+const rowOf=x=>{const e=toE(x);return Object.assign({},x,{eur:+e.toFixed(2),twd:Math.round(e*S.rate)});};
+const metaOf=()=>({settings:S.settings,rate:S.rate,rateDate:S.rateDate});
+// op：{action:'upsert',row} {action:'del',id} {action:'meta'} {action:'replace'}
+function commit(op){
+  if(DB&&CAN){const data=clone(S);wq=wq.then(()=>DB.doc('trip/money').set(data)).catch(e=>{if(e&&e.code==='invalid_argument'){CAN=false;render();toast('你目前只能看、不能修改');}else toast('雲端儲存失敗，已先存在這支手機');});}
+  if(sheetUrl()&&MODE!=='cloud'){
+    if(op.action==='meta')Q=Q.filter(q=>q.action!=='meta');
+    if(op.action==='replace')Q=[];
+    Q.push(op);
+  }
+  persist();sync();
+}
+function replay(list,ops){list=list.slice();ops.forEach(op=>{
+  if(op.action==='upsert'){const r=Object.assign({},op.row);delete r.eur;delete r.twd;const i=list.findIndex(y=>y.id===r.id);if(i>=0)list[i]=r;else list.push(r);}
+  else if(op.action==='del')list=list.filter(y=>y.id!==op.id);});return list;}
+function applyServer(j){
+  if(!j||!j.ok||!Array.isArray(j.list))throw new Error((j&&j.error)||'bad');
+  const u=sheetUrl();
+  // 第一次連到空白試算表：把手機裡已記的上傳上去
+  if(!j.list.length&&S.list.length&&!Q.length&&ls.get(SK)!==u){ls.set(SK,u);Q.push({action:'replace'});persist();return true;}
+  if(j.list.length)ls.set(SK,u);
+  S.list=replay(j.list,Q);
+  if(j.meta&&!Q.some(q=>q.action==='meta'||q.action==='replace')){const m=norm(Object.assign({},j.meta,{list:[]}));S.settings=m.settings;S.rate=m.rate;S.rateDate=m.rateDate;}
+  else if(!j.meta&&!Q.length){Q.push({action:'meta'});persist();return true;}
+  persist();return false;
+}
+async function sync(){
+  const u=sheetUrl();if(!u||SH.busy||MODE==='cloud')return;SH.busy=true;
+  try{
+    let again=true,n=0;
+    while(again&&n<80){n++;let j;
+      if(Q.length){const op=Q[0];const body=op.action==='meta'?{action:'meta',meta:metaOf()}:op.action==='replace'?{action:'replace',rows:S.list.map(rowOf),meta:metaOf()}:op;
+        const r=await fetch(u,{method:'POST',body:JSON.stringify(body)});j=await r.json();if(!j.ok)throw new Error(j.error);Q.shift();persist();
+        if(Q.length){continue;}}
+      else{const r=await fetch(u+(u.includes('?')?'&':'?')+'t='+Date.now());j=await r.json();}
+      again=applyServer(j);}
+    SH.st='ok';SH.last=new Date().toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){SH.st='err';}
+  finally{SH.busy=false;render();}
+}
+
+function tripDays(){const s=S.settings;if(!s.start||!s.end)return [];const out=[];let d=new Date(s.start+'T00:00:00');const e=new Date(s.end+'T00:00:00');
+  for(let i=0;d<=e&&i<40;i++){out.push(d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()));d.setDate(d.getDate()+1);}return out;}
+
+function render(){
+  const s=S.settings,r=S.rate,np=s.people.length;
+  document.getElementById('tname').textContent=s.name||'義大利之旅';
+  const days=tripDays();
+  document.getElementById('tsub').textContent=(s.start&&s.end?dLabel(s.start).slice(0,5)+' – '+dLabel(s.end).slice(0,5)+'・':'')+s.people.join('、');
+  const st=document.getElementById('store');
+  if(MODE==='cloud'){st.className='store cloud';st.textContent='☁️ 存在雲端，換手機也看得到'+(CAN?'':'（你只能看）');}
+  else if(sheetUrl()){
+    if(SH.st==='err'){st.className='store';st.textContent=Q.length?`⚠️ 沒網路，還有 ${Q.length} 筆先存在手機，連上網路會自動補傳`:'⚠️ 暫時連不到試算表，先用手機裡的資料';}
+    else{st.className='store cloud';st.textContent=SH.busy&&!SH.last?'☁️ 同步中…':`☁️ 已同步到 Google 試算表${SH.last?'・'+SH.last:''}${Q.length?`（${Q.length} 筆上傳中）`:''}`;}}
+  else{st.className='store';st.innerHTML='📱 資料只存在這支手機・到 ⚙️ 設定連結 Google 試算表，就會自動同步';}
+  document.getElementById('fab').hidden=!CAN;
+
+  const all=S.list;
+  const totE=all.reduce((a,x)=>a+toE(x),0);
+  const list=(U.day==='all'?all:all.filter(x=>x.date===U.day)).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.ts||0)-(a.ts||0));
+  const c=U.conv,cv=c.dir==='e2t'?fmtT(c.v*r):fmtE(c.v/r);
+
+  // summary
+  let h=`<div class="totals"><div class="tot big"><b>${fmtE(totE)}</b><span>總花費（歐元）・${all.length} 筆</span>`;
+  if(s.budget>0){const used=totE*r,p=Math.min(100,used/s.budget*100);h+=`<div class="budget"><i class="${used>s.budget?'over':''}" style="width:${p.toFixed(1)}%"></i></div><span>預算 ${fmtT(s.budget)}・${used>s.budget?'超出 '+fmtT(used-s.budget):'還剩 '+fmtT(s.budget-used)}</span>`;}
+  h+=`</div><div class="tot"><b>${fmtT(totE*r)}</b><span>約新台幣</span></div><div class="tot"><b>${np>1?fmtT(totE*r/np):fmtE(all.filter(x=>x.date===todayISO()).reduce((a,x)=>a+toE(x),0))}</b><span>${np>1?'每人平均（'+np+' 人）':'今天花了'}</span></div></div>`;
+
+  // converter
+  h+=`<div class="card"><h3>💱 換匯小幫手</h3><div class="conv"><label>${c.dir==='e2t'?'歐元 EUR':'台幣 TWD'}<input id="cv-in" type="number" inputmode="decimal" value="${esc(c.v)}"></label>
+   <button class="btn" data-act="swap" aria-label="對調幣別" style="padding:8px 12px">⇄</button>
+   <label>${c.dir==='e2t'?'台幣 TWD':'歐元 EUR'}<input id="cv-out" value="${cv}" readonly></label></div>
+   <div style="display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13px;flex-wrap:wrap"><label for="rate">匯率 1 EUR =</label><input id="rate" type="number" step="0.01" inputmode="decimal" value="${esc(r)}" style="width:96px;padding:4px 8px" ${CAN?'':'disabled'}><span>TWD</span><span class="hint">${esc(S.rateDate||'')}・可改成刷卡當天匯率</span></div></div>`;
+
+  // breakdown
+  if(all.length){
+    const key=U.view==='cat'?'cat':U.view==='city'?'city':U.view==='pay'?'pay':'who';
+    const g={};all.forEach(x=>{const k=x[key]||'未填';g[k]=(g[k]||0)+toE(x);});const max=Math.max(1,...Object.values(g));
+    const ico=k=>key==='cat'?(CATS[k]||'✨')+' ':key==='city'?'📍':key==='pay'?(k==='現金'?'💶 ':'💳 '):'🙂 ';
+    h+=`<div class="card"><h3>📊 花在哪裡</h3><div class="seg">${[['cat','分類'],['city','城市'],['pay','付款'],...(np>1?[['who','誰付']]:[])].map(([k,l])=>`<button data-act="view" data-k="${k}" aria-pressed="${U.view===k}">${l}</button>`).join('')}</div>
+     <div class="bars">${Object.entries(g).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bar"><span>${ico(k)}${esc(k)}</span><div class="tr"><div class="fl" style="width:${(v/max*100).toFixed(1)}%"></div></div><span class="v">${fmtE(v)}</span></div>`).join('')}</div>`;
+    const cash=all.filter(x=>x.pay==='現金'&&x.cur!=='TWD').reduce((a,x)=>a+(+x.amount),0);
+    if(cash>0)h+=`<div class="hint" style="margin-top:8px">💶 現金已花 ${fmtE(cash)}，對一下錢包剩多少</div>`;
+    h+=`</div>`;
+    // split
+    if(np>1){const paid={},share={};s.people.forEach(p=>{paid[p]=0;share[p]=0;});
+      all.forEach(x=>{const e=toE(x);const who=x.who||'一起';if(who==='一起'||!(who in paid)){s.people.forEach(p=>{paid[p]+=e/np;share[p]+=e/np;});}else{paid[who]+=e;const on=x.forWho==='自己'?[who]:s.people;on.forEach(p=>share[p]+=e/on.length);}});
+      h+=`<div class="card"><h3>🤝 分帳</h3><div class="split">${s.people.map(p=>{const d=paid[p]-share[p];return `<div><span>${esc(p)}・先付 ${fmtE(paid[p])}</span><b class="${d>0.004?'pos':d<-0.004?'neg':''}">${Math.abs(d)<0.005?'剛好':d>0?'要收 '+fmtE(d):'要給 '+fmtE(-d)}</b></div>`;}).join('')}</div><div class="hint" style="margin-top:6px">「一起」＝用公費付；記帳時選「自己的」就不會算進分帳</div></div>`;}
+  }
+
+  // day chips
+  const used=[...new Set(all.map(x=>x.date))];const chipDays=[...new Set([...days,...used])].sort((a,b)=>(a==='pre'?'0':a).localeCompare(b==='pre'?'0':b));
+  if(chipDays.length>1)h+=`<div class="chips"><button data-act="day" data-d="all" aria-pressed="${U.day==='all'}"><b>全部</b><small>${fmtE(totE)}</small></button>${chipDays.map(d=>{const t=all.filter(x=>x.date===d).reduce((a,x)=>a+toE(x),0);const L=dLabel(d);return `<button data-act="day" data-d="${esc(d)}" aria-pressed="${U.day===d}"><b>${esc(L.slice(0,5))}</b><small>${t?fmtE(t):(L.slice(5)||'—')}</small></button>`;}).join('')}</div>`;
+
+  // list grouped
+  if(!list.length)h+=`<div class="empty"><b>🧾</b>${all.length?'這天沒有紀錄':'還沒有花費紀錄，按下面「＋ 記一筆」開始'}</div>`;
+  else{let cur=null;list.forEach(x=>{if(x.date!==cur){cur=x.date;const t=list.filter(y=>y.date===cur).reduce((a,y)=>a+toE(y),0);h+=`<div class="dayh"><b>${esc(dLabel(cur))}</b><span>${fmtE(t)}・${fmtT(t*r)}</span></div>`;}
+    const e=toE(x);h+=`<button class="exp" data-act="edit" data-id="${esc(x.id)}"><div class="ce">${CATS[x.cat]||'✨'}</div><div style="min-width:0"><div class="nm">${esc(x.desc)}</div><div class="ds">${[x.city,x.cat,x.pay,np>1?x.who+(x.forWho==='自己'?'（自己的）':''):''].filter(Boolean).map(esc).join('・')}${x.note?'<br>'+esc(x.note):''}</div></div><div class="am">${x.cur==='TWD'?fmtT(x.amount):fmtE(x.amount)}<small>${x.cur==='TWD'?'≈ '+fmtE(e):'≈ '+fmtT(e*r)}</small></div></button>`;});}
+
+  document.getElementById('app').innerHTML=h;
+  const ci=document.getElementById('cv-in');ci&&ci.addEventListener('input',()=>{U.conv.v=parseFloat(ci.value)||0;const o=document.getElementById('cv-out');o.value=U.conv.dir==='e2t'?fmtT(U.conv.v*S.rate):fmtE(U.conv.v/S.rate);});
+  const ri=document.getElementById('rate');ri&&ri.addEventListener('change',()=>{const v=parseFloat(ri.value);if(!(v>20&&v<60)){toast('匯率看起來怪怪的，請再確認');ri.value=S.rate;return;}S.rate=v;const d=new Date();S.rateDate=(d.getMonth()+1)+'/'+d.getDate()+' 更新';commit({action:'meta'});render();toast('匯率更新了');});
+}
+
+// ---------- form ----------
+const sheet=document.getElementById('sheet'),sin=document.getElementById('sheetIn');
+function pickRow(name,opts,val){return `<div class="pick" data-pick="${name}">${opts.map(o=>`<button type="button" data-v="${esc(o)}" aria-pressed="${o===val}">${esc(o)}</button>`).join('')}</div>`;}
+function openExp(x){
+  const s=S.settings,np=s.people.length,isNew=!x;U.armed=false;
+  const days=tripDays();const t=todayISO();
+  x=x||{desc:'',amount:'',cur:'EUR',cat:'餐飲',pay:'刷卡',city:(S.list.length?S.list.slice().sort((a,b)=>(b.ts||0)-(a.ts||0))[0].city:s.cities[0])||s.cities[0],date:days.length&&!days.includes(t)?(t<days[0]?'pre':days[days.length-1]):t,who:np>1?'一起':s.people[0],forWho:'大家',note:''};
+  const catNames=Object.keys(CATS);
+  sin.innerHTML=`<h3>${isNew?'🧾 記一筆':'✏️ 改這筆'}</h3><form class="form" id="ef">
+   <label>金額<div class="amt"><input name="amount" type="number" step="0.01" inputmode="decimal" required value="${esc(x.amount)}" placeholder="0.00"><select name="cur"><option ${x.cur==='EUR'?'selected':''}>EUR</option><option ${x.cur==='TWD'?'selected':''}>TWD</option></select></div></label>
+   <label>項目<input name="desc" required maxlength="60" value="${esc(x.desc)}" placeholder="例如 競技場門票、提拉米蘇"></label>
+   <label>分類</label>${pickRow('cat',catNames.map(k=>k),x.cat)}
+   <div class="row2"><label>日期<input name="date" type="date" value="${x.date==='pre'?'':esc(x.date)}"></label><label>付款<select name="pay">${PAYS.map(p=>`<option ${x.pay===p?'selected':''}>${p}</option>`).join('')}</select></label></div>
+   <label><span><input type="checkbox" name="pre" ${x.date==='pre'?'checked':''} style="width:auto;vertical-align:-2px"> 出發前就付的（機票、訂房、門票預約）</span></label>
+   <label>城市</label>${pickRow('city',s.cities,x.city)}
+   ${np>1?`<label>誰付的</label>${pickRow('who',[...s.people,'一起'],x.who)}<label>算誰的</label>${pickRow('forWho',['大家','自己'],x.forWho||'大家')}`:''}
+   <label>備註（選填）<input name="note" maxlength="100" value="${esc(x.note||'')}" placeholder="例如 含服務費 coperto"></label>
+   <div class="acts">${isNew?'':`<button type="button" class="btn del" id="delb">刪除</button>`}<button type="button" class="btn" id="cancel">取消</button><button class="btn pri">${isNew?'記好了':'儲存'}</button></div></form>`;
+  sin.querySelector('.pick[data-pick="cat"]').querySelectorAll('button').forEach(b=>b.textContent=(CATS[b.dataset.v]||'')+' '+b.dataset.v);
+  sin.querySelectorAll('.pick').forEach(p=>p.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;p.querySelectorAll('button').forEach(o=>o.setAttribute('aria-pressed',o===b));}));
+  sheet.hidden=false;setTimeout(()=>{if(isNew)sin.querySelector('[name=amount]').focus();},60);
+  sin.querySelector('#cancel').onclick=()=>sheet.hidden=true;
+  const db=sin.querySelector('#delb');db&&(db.onclick=()=>{if(!U.armed){U.armed=true;db.classList.add('armed');db.textContent='確定刪除？';return;}S.list=S.list.filter(y=>y.id!==x.id);commit({action:'del',id:x.id});sheet.hidden=true;render();toast('刪掉了');});
+  sin.querySelector('#ef').onsubmit=e=>{e.preventDefault();const f=e.target;const amt=parseFloat(f.amount.value);if(!(amt>0)){toast('金額要大於 0');return;}
+    const pv=n=>{const b=sin.querySelector(`.pick[data-pick="${n}"] button[aria-pressed="true"]`);return b?b.dataset.v:'';};
+    const date=f.pre.checked?'pre':(f.date.value||todayISO());
+    const o={id:x.id||'e'+uid(),ts:x.ts||Date.now(),desc:f.desc.value.trim(),amount:Math.round(amt*100)/100,cur:f.cur.value,cat:pv('cat')||'其他',date,pay:f.pay.value,city:pv('city'),who:np>1?(pv('who')||'一起'):s.people[0],forWho:np>1?(pv('forWho')||'大家'):'大家',note:f.note.value.trim()};
+    if(!o.desc){toast('請寫一下項目');return;}
+    S.list=isNew?[...S.list,o]:S.list.map(y=>y.id===o.id?o:y);commit({action:'upsert',row:rowOf(o)});sheet.hidden=true;render();toast(isNew?'記好了 ✓':'改好了');};
+}
+
+// ---------- settings ----------
+function csv(){const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const rows=[['日期','項目','分類','城市','金額','幣別','歐元','台幣','付款','誰付','算誰的','備註']];
+  S.list.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.ts||0)-(b.ts||0)).forEach(x=>{const e=toE(x);rows.push([x.date==='pre'?'出發前':x.date,x.desc,x.cat,x.city,x.amount,x.cur,e.toFixed(2),Math.round(e*S.rate),x.pay,x.who,x.forWho,x.note]);});
+  return '﻿'+rows.map(r=>r.map(q).join(',')).join('\n');}
+async function copy(t,m){try{await navigator.clipboard.writeText(t);toast(m);}catch(e){const ta=document.getElementById('bk');if(ta){ta.value=t;ta.select();}toast('請長按下面文字框，全選後複製');}}
+function openSettings(){const s=S.settings;
+  sin.innerHTML=`<h3>⚙️ 設定</h3><form class="form" id="sf">
+   <label>旅行名稱<input name="name" maxlength="30" value="${esc(s.name)}"></label>
+   <div class="row2"><label>出發日<input name="start" type="date" value="${esc(s.start)}"></label><label>回國日<input name="end" type="date" value="${esc(s.end)}"></label></div>
+   <label>同行的人（用頓號或逗號分開；一個人就只寫自己）<input name="people" value="${esc(s.people.join('、'))}" placeholder="弟弟、女友"></label>
+   <label>城市（用頓號分開）<input name="cities" value="${esc(s.cities.join('、'))}"></label>
+   <label>總預算（台幣，選填）<input name="budget" type="number" inputmode="numeric" value="${s.budget||''}" placeholder="例如 80000"></label>
+   <div class="acts"><button type="button" class="btn" id="cancel">取消</button><button class="btn pri">儲存</button></div></form>
+   ${IN_CLAUDE?'':`<hr><h3>☁️ Google 試算表同步</h3>
+   <label style="display:grid;gap:3px;font-size:12.5px;color:var(--muted)">Apps Script 網址<input id="surl" value="${esc(sheetUrl())}" placeholder="https://script.google.com/macros/s/…/exec" style="font-size:13px"></label>
+   <div class="acts" style="justify-content:flex-start"><button class="btn pri" id="slink">連結</button><button class="btn" id="ssync">🔄 立即同步</button></div>
+   <p class="hint">${sheetUrl()?(SH.st==='err'?'⚠️ 上次沒連上'+(Q.length?`，還有 ${Q.length} 筆等著補傳`:''):'✅ 已連結'+(SH.last?'・最後同步 '+SH.last:'')):'還沒連結：貼上網址按「連結」，之後每記一筆都會自動寫進試算表。'}</p>`}
+   <hr><h3>💾 匯出與備份</h3>
+   <div class="acts" style="justify-content:flex-start"><button class="btn" id="csvc">📋 複製成表格（貼到 Excel／Google 試算表）</button><button class="btn" id="csvd">⬇️ 下載 CSV</button></div>
+   <div class="acts" style="justify-content:flex-start"><button class="btn" id="bkc">📦 複製備份碼</button><button class="btn" id="bkr">♻️ 用備份碼還原</button></div>
+   <textarea id="bk" rows="3" placeholder="還原：把備份碼貼在這裡，再按「用備份碼還原」" style="font-size:12px"></textarea>
+   <p class="hint">${MODE==='cloud'?'目前資料存在雲端。':sheetUrl()?'已連結試算表，每一筆都自動存進去，不用手動備份；備份碼只是保險用。':'還沒連結試算表時，資料只存在這支手機，清除瀏覽紀錄或換手機會不見。'}<br>iPhone：Safari 分享 → 加入主畫面，就能像 App 一樣打開。</p>`;
+  sheet.hidden=false;
+  sin.querySelector('#cancel').onclick=()=>sheet.hidden=true;
+  const split=v=>v.split(/[、,，\s]+/).map(x=>x.trim()).filter(Boolean);
+  sin.querySelector('#sf').onsubmit=e=>{e.preventDefault();const f=e.target;if(!CAN){toast('你目前只能看');return;}
+    const ppl=split(f.people.value).slice(0,8),cts=split(f.cities.value).slice(0,10);
+    if(f.start.value&&f.end.value&&f.end.value<f.start.value){toast('回國日要在出發日之後');return;}
+    S.settings={name:f.name.value.trim()||'義大利之旅',start:f.start.value,end:f.end.value,people:ppl.length?ppl:['弟弟'],cities:cts.length?cts:clone(DEF.settings.cities),budget:Math.max(0,parseFloat(f.budget.value)||0)};
+    commit({action:'meta'});sheet.hidden=true;render();toast('設定好了');};
+  const sl=sin.querySelector('#slink');sl&&(sl.onclick=()=>{const v=sin.querySelector('#surl').value.trim();
+    if(v&&!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v)){toast('網址要是 https://script.google.com/macros/s/…/exec');return;}
+    ls.set(UK,v);SH.st='';SH.last='';sheet.hidden=true;render();if(v){toast('連結中…');sync();}else toast('已取消連結');});
+  const ss=sin.querySelector('#ssync');ss&&(ss.onclick=()=>{if(!sheetUrl()){toast('先貼上網址按「連結」');return;}sheet.hidden=true;toast('同步中…');sync();});
+  sin.querySelector('#csvc').onclick=()=>copy(csv().replace(/^﻿/,'').replace(/,/g,'\t'),'已複製，到試算表貼上就好');
+  sin.querySelector('#csvd').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv()],{type:'text/csv'}));a.download=(S.settings.name||'義大利記帳')+'.csv';document.body.appendChild(a);a.click();a.remove();toast('下載中（沒反應就用「複製成表格」）');}catch(e){toast('這裡不能下載，請用「複製成表格」');}};
+  sin.querySelector('#bkc').onclick=()=>copy(JSON.stringify(S),'備份碼已複製，貼到 LINE 存著');
+  let arm=false;sin.querySelector('#bkr').onclick=e=>{const v=sin.querySelector('#bk').value.trim();if(!v){toast('先把備份碼貼到文字框');return;}
+    let d;try{d=norm(JSON.parse(v));}catch(x){toast('備份碼不完整，請重新複製');return;}
+    if(!arm){arm=true;e.target.textContent='會蓋掉現在的 '+S.list.length+' 筆，確定？';return;}
+    S=d;commit({action:'replace'});sheet.hidden=true;render();toast('還原好了，共 '+S.list.length+' 筆');};
+}
+
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
+  if(a==='swap'){U.conv.dir=U.conv.dir==='e2t'?'t2e':'e2t';render();}
+  else if(a==='view'){U.view=b.dataset.k;render();}
+  else if(a==='day'){U.day=b.dataset.d;render();}
+  else if(a==='edit'){if(!CAN)return;const x=S.list.find(y=>y.id===b.dataset.id);x&&openExp(clone(x));}});
+document.getElementById('fab').onclick=()=>openExp(null);
+document.getElementById('gear').onclick=openSettings;
+sheet.addEventListener('click',e=>{if(e.target===sheet)sheet.hidden=true;});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')sheet.hidden=true;});
+render();
+// 自動同步：打開時、切回 App 時、恢復網路時、每 60 秒
+sync();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync();});
+window.addEventListener('online',()=>sync());
+setInterval(()=>{if(!document.hidden)sync();},60000);
+
+// Cloud mode when opened inside claude.ai; otherwise stays on this phone's storage.
+(async()=>{
+  if(!window.claude||!window.claude.use)return;
+  let db=null;try{db=await window.claude.use('db');}catch(e){}
+  if(!db)return;
+  try{const user=await window.claude.use('user');const c=user?await user.can('data.write'):null;if(c===false)CAN=false;}catch(e){}
+  DB=db;MODE='cloud';render();
+  let first=true;
+  db.doc('trip/money').onSnapshot(snap=>{
+    if(snap.exists){S=norm(clone(snap.data()));ls.set(KEY,JSON.stringify(S));}
+    else if(first&&S.list.length&&CAN){commit({action:'replace'});}
+    first=false;render();
+  },()=>{MODE='local';DB=null;render();toast('雲端讀取失敗，先用手機裡的資料');});
+})();
+</script>
+</body>
+</html>
