@@ -72,6 +72,7 @@ input,select,textarea{width:100%;border:2px solid var(--line);border-radius:12px
 .split div{display:flex;justify-content:space-between;gap:8px;font-size:14px;background:var(--bg);border-radius:12px;padding:7px 11px}
 .split b{font:900 14px var(--f-num)}
 .settle{background:var(--yellow-soft);border-radius:14px;padding:10px 14px;font-size:16px;line-height:1.5}.settle b{font-weight:900}
+.paid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.paid div{background:var(--bg);border-radius:14px;padding:8px 10px;display:grid;gap:2px;justify-items:start;font-size:12.5px;color:var(--muted)}.paid b{font:900 17px var(--f-num);color:var(--ink)}
 .pc{display:inline-block;border-radius:999px;padding:1px 10px;font-weight:900;white-space:nowrap}
 .ds .pc{font-size:11.5px;padding:0 8px;font-weight:700}
 .pick button.pw{font-size:17px;padding:6px 18px;border-width:2.5px}
@@ -268,7 +269,7 @@ function render(){
       const bal=s.people.map(p=>[p,paid[p]-share[p]]);let msg;
       if(np===2){const [a,da]=bal[0],[b]=bal[1];msg=Math.abs(da)<0.005?'🎉 目前剛好打平，不用找錢':da>0?`${pchip(b)} 要給 ${pchip(a)} ${fmtE(da)}<br><span class="hint">約 ${fmtT(da*r)}</span>`:`${pchip(a)} 要給 ${pchip(b)} ${fmtE(-da)}<br><span class="hint">約 ${fmtT(-da*r)}</span>`;}
       else msg=bal.map(([p,d])=>`${pchip(p)}：${Math.abs(d)<0.005?'剛好':d>0?'要收 '+fmtE(d):'要給 '+fmtE(-d)}`).join('<br>');
-      h+=`<div class="card"><h3>🤝 AA 分帳</h3><div class="settle">${msg}</div><div class="split" style="margin-top:10px">${s.people.map(p=>`<div><span>${pchip(p)} 先付了</span><b>${fmtE(paid[p])}</b></div><div style="background:none;padding:0 11px;margin-top:-4px;font-size:12.5px;color:var(--muted)"><span>${esc(pLabel(p))} 應該負擔</span><span>${fmtE(share[p])}</span></div>`).join('')}</div><div class="hint" style="margin-top:6px">每筆預設兩人平分；記帳時選「只算付的人」就不會算進分帳</div></div>`;}
+      h+=`<div class="card"><h3>🤝 分帳</h3><div class="settle">${msg}</div><div class="paid">${s.people.map(p=>`<div>${pchip(p)}<span>付了</span><b>${fmtE(paid[p])}</b></div>`).join('')}</div></div>`;}
   }
 
   // day chips
@@ -278,7 +279,7 @@ function render(){
   // list grouped
   if(!list.length)h+=`<div class="empty"><b>🧾</b>${all.length?'這天沒有紀錄':'還沒有花費紀錄，按下面「＋ 記一筆」開始'}</div>`;
   else{let cur=null;list.forEach(x=>{if(x.date!==cur){cur=x.date;const t=list.filter(y=>y.date===cur).reduce((a,y)=>a+toE(y),0);h+=`<div class="dayh"><b>${esc(dLabel(cur))}</b><span>${fmtE(t)}・${fmtT(t*r)}</span></div>`;}
-    const e=toE(x);h+=`<button class="exp" data-act="edit" data-id="${esc(x.id)}"><div class="ce">${CATS[x.cat]||'✨'}</div><div style="min-width:0"><div class="nm">${esc(x.desc)}</div><div class="ds">${[x.city,x.cat,x.pay].filter(Boolean).map(esc).join('・')}${np>1?'<br>'+pchip(x.who)+(x.forWho==='自己'?' 付・自己的':' 付・AA'):''}${x.note?'<br>'+esc(x.note):''}</div></div><div class="am">${x.cur==='TWD'?fmtT(x.amount):fmtE(x.amount)}<small>${x.cur==='TWD'?'≈ '+fmtE(e):'≈ '+fmtT(e*r)}</small></div></button>`;});}
+    const e=toE(x);h+=`<button class="exp" data-act="edit" data-id="${esc(x.id)}"><div class="ce">${CATS[x.cat]||'✨'}</div><div style="min-width:0"><div class="nm">${esc(x.desc)}</div><div class="ds">${[x.city,x.cat,x.pay].filter(Boolean).map(esc).join('・')}${np>1?'<br>'+pchip(x.who)+' 付':''}${x.note?'<br>'+esc(x.note):''}</div></div><div class="am">${x.cur==='TWD'?fmtT(x.amount):fmtE(x.amount)}<small>${x.cur==='TWD'?'≈ '+fmtE(e):'≈ '+fmtT(e*r)}</small></div></button>`;});}
 
   document.getElementById('app').innerHTML=h;
   const ci=document.getElementById('cv-in');ci&&ci.addEventListener('input',()=>{U.conv.v=parseFloat(ci.value)||0;const o=document.getElementById('cv-out');o.value=U.conv.dir==='e2t'?fmtT(U.conv.v*S.rate):fmtE(U.conv.v/S.rate);});
@@ -300,13 +301,12 @@ function openExp(x){
    <div class="row2"><label>日期<input name="date" type="date" value="${x.date==='pre'?'':esc(x.date)}"></label><label>付款<select name="pay">${PAYS.map(p=>`<option ${x.pay===p?'selected':''}>${p}</option>`).join('')}</select></label></div>
    <label><span><input type="checkbox" name="pre" ${x.date==='pre'?'checked':''} style="width:auto;vertical-align:-2px"> 出發前就付的（機票、訂房、門票預約）</span></label>
    <label>城市</label>${pickRow('city',s.cities,x.city)}
-   ${np>1?`<label>誰付的</label>${pickRow('who',s.people,s.people.includes(x.who)?x.who:s.people[0])}<label>怎麼分</label>${pickRow('forWho',['大家','自己'],x.forWho||'大家')}`:''}
+   ${np>1?`<label>誰付的</label>${pickRow('who',s.people,s.people.includes(x.who)?x.who:s.people[0])}`:''}
    <label>備註（選填）<input name="note" maxlength="100" value="${esc(x.note||'')}" placeholder="例如 含服務費 coperto"></label>
    <div class="acts">${isNew?'':`<button type="button" class="btn del" id="delb">刪除</button>`}<button type="button" class="btn" id="cancel">取消</button><button class="btn pri">${isNew?'記好了':'儲存'}</button></div></form>`;
   sin.querySelector('.pick[data-pick="cat"]').querySelectorAll('button').forEach(b=>b.textContent=(CATS[b.dataset.v]||'')+' '+b.dataset.v);
   const paintWho=()=>sin.querySelectorAll('.pick[data-pick="who"] button').forEach(b=>{const c=PC[pIdx(b.dataset.v)];b.classList.add('pw');b.textContent=pLabel(b.dataset.v);if(!c)return;const on=b.getAttribute('aria-pressed')==='true';b.style.background=on?c.solid:c.bg;b.style.color=on?'#fff':c.fg;b.style.borderColor=on?c.solid:c.bg;});
   paintWho();sin.querySelector('.pick[data-pick="who"]')?.addEventListener('click',()=>setTimeout(paintWho,0));
-  {const fw=sin.querySelector('.pick[data-pick="forWho"]');fw&&fw.querySelectorAll('button').forEach(b=>b.textContent=b.dataset.v==='大家'?'👫 AA 平分':'🙋 只算付的人');}
   sin.querySelectorAll('.pick').forEach(p=>p.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;p.querySelectorAll('button').forEach(o=>o.setAttribute('aria-pressed',o===b));}));
   sheet.hidden=false;setTimeout(()=>{if(isNew)sin.querySelector('[name=amount]').focus();},60);
   sin.querySelector('#cancel').onclick=()=>sheet.hidden=true;
@@ -314,16 +314,26 @@ function openExp(x){
   sin.querySelector('#ef').onsubmit=e=>{e.preventDefault();const f=e.target;const amt=parseFloat(f.amount.value);if(!(amt>0)){toast('金額要大於 0');return;}
     const pv=n=>{const b=sin.querySelector(`.pick[data-pick="${n}"] button[aria-pressed="true"]`);return b?b.dataset.v:'';};
     const date=f.pre.checked?'pre':(f.date.value||todayISO());
-    const o={id:x.id||'e'+uid(),ts:x.ts||Date.now(),desc:f.desc.value.trim(),amount:Math.round(amt*100)/100,cur:f.cur.value,cat:pv('cat')||'其他',date,pay:f.pay.value,city:pv('city'),who:np>1?(pv('who')||s.people[0]):s.people[0],forWho:np>1?(pv('forWho')||'大家'):'大家',note:f.note.value.trim()};
+    const o={id:x.id||'e'+uid(),ts:x.ts||Date.now(),desc:f.desc.value.trim(),amount:Math.round(amt*100)/100,cur:f.cur.value,cat:pv('cat')||'其他',date,pay:f.pay.value,city:pv('city'),who:np>1?(pv('who')||s.people[0]):s.people[0],forWho:x.forWho||'大家',note:f.note.value.trim()};
     if(!o.desc){toast('請寫一下項目');return;}
     S.list=isNew?[...S.list,o]:S.list.map(y=>y.id===o.id?o:y);commit({action:'upsert',row:rowOf(o)});sheet.hidden=true;render();toast(isNew?'記好了 ✓':'改好了');};
 }
 
 // ---------- settings ----------
-function csv(){const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
-  const rows=[['日期','項目','分類','城市','金額','幣別','歐元','台幣','付款','誰付','怎麼分','備註']];
-  S.list.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.ts||0)-(b.ts||0)).forEach(x=>{const e=toE(x);rows.push([x.date==='pre'?'出發前':x.date,x.desc,x.cat,x.city,x.amount,x.cur,e.toFixed(2),Math.round(e*S.rate),x.pay,x.who,x.forWho==='自己'?'自己的':'AA',x.note]);});
-  return '﻿'+rows.map(r=>r.map(q).join(',')).join('\n');}
+function asText(){const s=S.settings,r=S.rate,np=s.people.length;
+  const L=[],all=S.list.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.ts||0)-(b.ts||0));
+  const tot=all.reduce((a,x)=>a+toE(x),0);
+  L.push('✈️ '+(s.name||'義大利之旅')+' 記帳','');
+  let cur=null;all.forEach(x=>{if(x.date!==cur){cur=x.date;L.push((cur?'【'+dLabel(cur)+'】':'【未填日期】'));}
+    L.push('・'+x.desc+'　'+(x.cur==='TWD'?fmtT(x.amount):fmtE(x.amount))+(np>1?'（'+pLabel(x.who)+' 付）':'')+(x.note?'　'+x.note:''));});
+  L.push('','總共 '+fmtE(tot)+'（約 '+fmtT(tot*r)+'）');
+  if(np>1){const paid={},share={};s.people.forEach(p=>{paid[p]=0;share[p]=0;});
+    all.forEach(x=>{const e=toE(x);if(!(x.who in paid)){s.people.forEach(p=>{paid[p]+=e/np;share[p]+=e/np;});}else{paid[x.who]+=e;const on=x.forWho==='自己'?[x.who]:s.people;on.forEach(p=>share[p]+=e/on.length);}});
+    s.people.forEach(p=>L.push(pLabel(p)+' 付了 '+fmtE(paid[p])));
+    if(np===2){const d=paid[s.people[0]]-share[s.people[0]];const [a,b]=s.people;
+      L.push(Math.abs(d)<0.005?'👉 剛好打平':d>0?'👉 '+pLabel(b)+' 要給 '+pLabel(a)+' '+fmtE(d)+'（約 '+fmtT(d*r)+'）':'👉 '+pLabel(a)+' 要給 '+pLabel(b)+' '+fmtE(-d)+'（約 '+fmtT(-d*r)+'）');}}
+  L.push('','匯率 1 EUR = '+r+' TWD');
+  return L.join('\n');}
 async function copy(t,m){try{await navigator.clipboard.writeText(t);toast(m);}catch(e){const ta=document.getElementById('bk');if(ta){ta.value=t;ta.select();}toast('請長按下面文字框，全選後複製');}}
 function openSettings(){const s=S.settings;
   sin.innerHTML=`<h3>⚙️ 設定</h3><form class="form" id="sf">
@@ -337,11 +347,10 @@ function openSettings(){const s=S.settings;
    <label style="display:grid;gap:3px;font-size:12.5px;color:var(--muted)">Apps Script 網址<input id="surl" value="${esc(sheetUrl())}" placeholder="https://script.google.com/macros/s/…/exec" style="font-size:13px"></label>
    <div class="acts" style="justify-content:flex-start"><button class="btn pri" id="slink">連結</button><button class="btn" id="ssync">🔄 立即同步</button></div>
    <p class="hint">${sheetUrl()?(SH.st==='err'?'⚠️ 上次沒連上'+(Q.length?`，還有 ${Q.length} 筆等著補傳`:''):'✅ 已連結'+(SH.last?'・最後同步 '+SH.last:'')):'還沒連結：貼上網址按「連結」，之後每記一筆都會自動寫進試算表。'}</p>`}
-   <hr><h3>💾 匯出與備份</h3>
-   <div class="acts" style="justify-content:flex-start"><button class="btn" id="csvc">📋 複製成表格（貼到 Excel／Google 試算表）</button><button class="btn" id="csvd">⬇️ 下載 CSV</button></div>
-   <div class="acts" style="justify-content:flex-start"><button class="btn" id="bkc">📦 複製備份碼</button><button class="btn" id="bkr">♻️ 用備份碼還原</button></div>
-   <textarea id="bk" rows="3" placeholder="還原：把備份碼貼在這裡，再按「用備份碼還原」" style="font-size:12px"></textarea>
-   <p class="hint">${MODE==='cloud'?'目前資料存在雲端。':sheetUrl()?'已連結試算表，每一筆都自動存進去，不用手動備份；備份碼只是保險用。':'還沒連結試算表時，資料只存在這支手機，清除瀏覽紀錄或換手機會不見。'}<br>iPhone：Safari 分享 → 加入主畫面，就能像 App 一樣打開。</p>`;
+   <hr><h3>📝 轉成文字</h3>
+   <div class="acts" style="justify-content:flex-start"><button class="btn pri" id="txtc">📋 複製成文字（貼到記事本）</button></div>
+   <textarea id="bk" rows="4" readonly placeholder="複製不成功時，文字會出現在這裡，長按全選複製" style="font-size:12px"></textarea>
+   <p class="hint">${MODE==='cloud'?'目前資料存在雲端。':sheetUrl()?'已連結試算表，每一筆都自動存進去，不用手動備份。':'還沒連結試算表時，資料只存在這支手機，清除瀏覽紀錄或換手機會不見。'}<br>iPhone：Safari 分享 → 加入主畫面，就能像 App 一樣打開。</p>`;
   sheet.hidden=false;
   sin.querySelector('#cancel').onclick=()=>sheet.hidden=true;
   const split=v=>v.split(/[、,，\s]+/).map(x=>x.trim()).filter(Boolean);
@@ -354,13 +363,7 @@ function openSettings(){const s=S.settings;
     if(v&&!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(v)){toast('網址要是 https://script.google.com/macros/s/…/exec');return;}
     ls.set(UK,v);SH.st='';SH.last='';sheet.hidden=true;render();if(v){toast('連結中…');sync();}else toast('已取消連結');});
   const ss=sin.querySelector('#ssync');ss&&(ss.onclick=()=>{if(!sheetUrl()){toast('先貼上網址按「連結」');return;}sheet.hidden=true;toast('同步中…');sync();});
-  sin.querySelector('#csvc').onclick=()=>copy(csv().replace(/^﻿/,'').replace(/,/g,'\t'),'已複製，到試算表貼上就好');
-  sin.querySelector('#csvd').onclick=()=>{try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv()],{type:'text/csv'}));a.download=(S.settings.name||'義大利記帳')+'.csv';document.body.appendChild(a);a.click();a.remove();toast('下載中（沒反應就用「複製成表格」）');}catch(e){toast('這裡不能下載，請用「複製成表格」');}};
-  sin.querySelector('#bkc').onclick=()=>copy(JSON.stringify(S),'備份碼已複製，貼到 LINE 存著');
-  let arm=false;sin.querySelector('#bkr').onclick=e=>{const v=sin.querySelector('#bk').value.trim();if(!v){toast('先把備份碼貼到文字框');return;}
-    let d;try{d=norm(JSON.parse(v));}catch(x){toast('備份碼不完整，請重新複製');return;}
-    if(!arm){arm=true;e.target.textContent='會蓋掉現在的 '+S.list.length+' 筆，確定？';return;}
-    S=d;commit({action:'replace'});sheet.hidden=true;render();toast('還原好了，共 '+S.list.length+' 筆');};
+  sin.querySelector('#txtc').onclick=()=>copy(asText(),'已複製，貼到記事本就好');
 }
 
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;
